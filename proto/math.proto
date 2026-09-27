@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package math;
+
+service MathService {
+  rpc Addition(OperationRequest) returns (OperationResult);
+  rpc Subtraction(OperationRequest) returns (OperationResult);
+  rpc Multiplication(OperationRequest) returns (OperationResult);
+  rpc Division(OperationRequest) returns (OperationResult);
+}
+
+message OperationRequest {
+  double lhs = 1;
+  double rhs = 2;
+}
+
+message OperationResult {
+  double result = 1;
+}
