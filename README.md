@@ -40,6 +40,18 @@ These environment variables are used when they are set and no corresponding CLI 
 CLI arguments take precedence over environment variables.
 
 
+### Daemon
+
+The daemon acts as a bridge and provides a gRPC client for communicating with the server.
+
+To run the daemon:
+
+```bash
+cargo run --bin daemon
+```
+
+Currently, the daemon only sends a hardcoded request to the server. This is intended for testing the gRPC communication between the daemon and the server.
+
 ## Quality Gates
 
 The project uses the following quality gates:

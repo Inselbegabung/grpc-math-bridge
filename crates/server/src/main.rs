@@ -1,5 +1,5 @@
 use clap::Parser;
-use server_lib::server;
+use server::server;
 use std::net::{Ipv4Addr, SocketAddr};
 
 #[derive(Parser, Debug)]

@@ -1,6 +1,6 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-use server_lib::server::{
+use server::server::{
     proto::math::{OperationRequest, math_service_client::MathServiceClient},
     run,
 };
