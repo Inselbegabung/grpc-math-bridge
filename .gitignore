@@ -8,3 +8,6 @@ target
 
 # IDE
 ./vscode
+
+# config files
+daemon_config.json

@@ -39,32 +39,43 @@ These environment variables are used when they are set and no corresponding CLI 
 
 CLI arguments take precedence over environment variables.
 
-
 ### Daemon
 
-The daemon acts as a bridge and provides a gRPC client for communicating with the server.
+The daemon acts as a bridge between a Unix socket and the gRPC math service.
 
-To run the daemon:
+To run the daemon, provide the path to a configuration file:
 
-```bash
-cargo run --bin daemon
+```bash id="wrrzh3"
+cargo run --bin daemon -- config.json
 ```
 
-A connection to the daemon can be established using a Unix socket.
+The configuration file is required and has the following structure:
+
+```json id="b2f63x"
+{
+  "grpc_address": "http://127.0.0.1:50051",
+  "socket_path": "/tmp/math.sock"
+}
+```
+
+A connection to the daemon can be established using the configured Unix socket.
 
 The Unix socket can be tested using `socat`:
 
-```bash
+```bash id="nh16kp"
 socat - UNIX-CONNECT:/tmp/math.sock
 ```
 
 Once the connection is established, requests can be sent as JSON messages. For example:
 
-```json
+```json id="e5d3su"
 {"version":"1.0","command":"ADDITION","data":{"lhs":10.0,"rhs":5.0}}
 ```
 
-The daemon processes the request, forwards the corresponding operation to the gRPC server, and returns the result over the Unix socket. See the [Unix Socket Protocol Specification](crates/protocol/specification.md) for details about the protocol.
+The daemon processes the request, forwards the corresponding operation to the gRPC server, and returns the result over the Unix socket.
+
+See the [Unix Socket Protocol Specification](crates/protocol/specification.md) for details about the protocol.
+
 
 ## Protocol
 
