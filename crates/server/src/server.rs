@@ -30,7 +30,7 @@ pub async fn run_with_listener(listener: TcpListener) {
         .serve_with_incoming_shutdown(incoming, shutdown_signal())
         .await
         .expect("running gRPC server");
-    info!("Start shutdown.");
+    info!("Start stopped.");
 }
 
 async fn shutdown_signal() {

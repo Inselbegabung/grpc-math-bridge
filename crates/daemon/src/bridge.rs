@@ -121,6 +121,10 @@ async fn read_request(stream: OwnedReadHalf) -> Result<Vec<u8>, String> {
         return Err("Unix socket message too large.".into());
     }
 
+    if !data.ends_with(b"\n") {
+        return Err("Received data is not `\n` terminated.".into());
+    }
+
     Ok(data)
 }
 
@@ -202,5 +206,46 @@ mod test {
         assert_eq!(response, "response\n");
 
         server_task.await.expect("server task");
+    }
+
+    #[tokio::test]
+    async fn read_request_reads_newline_terminated_message() {
+        let (stream, mut peer) = UnixStream::pair().expect("create socket pair");
+        let (reader, _) = stream.into_split();
+
+        peer.write_all(b"request\n").await.expect("write request");
+
+        let result = read_request(reader).await.expect("read request");
+
+        assert_eq!(result, b"request\n");
+    }
+
+    #[tokio::test]
+    async fn read_request_rejects_message_without_newline() {
+        let (stream, mut peer) = UnixStream::pair().expect("create socket pair");
+        let (reader, _) = stream.into_split();
+
+        peer.write_all(b"request").await.expect("write request");
+        peer.shutdown().await.expect("shutdown peer");
+
+        let result = read_request(reader).await;
+
+        assert_eq!(result, Err("Received data is not `\n` terminated.".into()));
+    }
+
+    #[tokio::test]
+    async fn read_request_rejects_message_larger_than_limit() {
+        const MAX_REQUEST_SIZE: usize = 4096;
+
+        let (stream, mut peer) = UnixStream::pair().expect("create socket pair");
+        let (reader, _) = stream.into_split();
+
+        let request = vec![b'x'; MAX_REQUEST_SIZE + 1];
+
+        peer.write_all(&request).await.expect("write request");
+
+        let result = read_request(reader).await;
+
+        assert_eq!(result, Err("Unix socket message too large.".into()));
     }
 }
