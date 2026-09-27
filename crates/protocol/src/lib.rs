@@ -2,13 +2,13 @@ use serde::{Deserialize, Serialize};
 
 pub const PROTOCOL_VERSION: &str = "1.0";
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct CommandData {
     pub lhs: f64,
     pub rhs: f64,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 #[serde(tag = "command", content = "data", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Command {
     Addition(CommandData),
@@ -28,17 +28,24 @@ struct RequestBody {
     pub command: Command,
 }
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize)]
+struct FullRequest {
+    pub version: String,
+    #[serde(flatten)]
+    pub command: Command,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ResultData {
     result: f64,
 }
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ErrorData {
     error: String,
 }
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type", content = "data", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum MathResult {
     Result(ResultData),
@@ -49,6 +56,14 @@ pub enum MathResult {
 pub struct MathResultResponse {
     #[serde(flatten)]
     pub result: MathResult,
+}
+
+#[derive(Debug, Serialize)]
+struct FullResponse {
+    version: String,
+
+    #[serde(flatten)]
+    result: MathResult,
 }
 
 #[derive(Debug)]
@@ -83,8 +98,31 @@ pub fn parse_request(data: &[u8]) -> Result<Command, Error> {
     Ok(request.command)
 }
 
+pub fn create_request(command: Command) -> Result<Vec<u8>, Error> {
+    let request = FullRequest {
+        version: PROTOCOL_VERSION.to_string(),
+        command,
+    };
+    serde_json::to_vec(&request).map_err(Into::into)
+}
+
+pub fn parse_response(data: &[u8]) -> Result<MathResult, Error> {
+    let header: RequestHeader = serde_json::from_slice(data)?;
+    if header.version != PROTOCOL_VERSION {
+        return Err(Error::UnsupportedVersion);
+    }
+
+    let result: MathResult = serde_json::from_slice(data)?;
+    Ok(result)
+}
+
 pub fn create_response(result: MathResult) -> Result<Vec<u8>, Error> {
-    serde_json::to_vec(&result).map_err(Into::into)
+    let response = FullResponse {
+        version: PROTOCOL_VERSION.to_string(),
+        result,
+    };
+
+    serde_json::to_vec(&response).map_err(Into::into)
 }
 
 #[cfg(test)]
@@ -258,7 +296,10 @@ mod tests {
             let response =
                 create_response(MathResult::result(15.0)).expect("response should serialize");
             let response = String::from_utf8(response).expect("response should be valid UTF-8");
-            assert_eq!(response, r#"{"type":"RESULT","data":{"result":15.0}}"#);
+            assert_eq!(
+                response,
+                r#"{"version":"1.0","type":"RESULT","data":{"result":15.0}}"#
+            );
         }
 
         #[test]
@@ -266,7 +307,10 @@ mod tests {
             let response =
                 create_response(MathResult::result(-15.5)).expect("response should serialize");
             let response = String::from_utf8(response).expect("response should be valid UTF-8");
-            assert_eq!(response, r#"{"type":"RESULT","data":{"result":-15.5}}"#);
+            assert_eq!(
+                response,
+                r#"{"version":"1.0","type":"RESULT","data":{"result":-15.5}}"#
+            );
         }
 
         #[test]
@@ -274,7 +318,10 @@ mod tests {
             let response =
                 create_response(MathResult::result(0.0)).expect("response should serialize");
             let response = String::from_utf8(response).expect("response should be valid UTF-8");
-            assert_eq!(response, r#"{"type":"RESULT","data":{"result":0.0}}"#);
+            assert_eq!(
+                response,
+                r#"{"version":"1.0","type":"RESULT","data":{"result":0.0}}"#
+            );
         }
 
         #[test]
@@ -284,7 +331,7 @@ mod tests {
             let response = String::from_utf8(response).expect("response should be valid UTF-8");
             assert_eq!(
                 response,
-                r#"{"type":"ERROR","data":{"error":"division by zero"}}"#
+                r#"{"version":"1.0","type":"ERROR","data":{"error":"division by zero"}}"#
             );
         }
 
@@ -295,8 +342,49 @@ mod tests {
             let response = String::from_utf8(response).expect("response should be valid UTF-8");
             assert_eq!(
                 response,
-                r#"{"type":"ERROR","data":{"error":"invalid \"operation\""}}"#
+                r#"{"version":"1.0","type":"ERROR","data":{"error":"invalid \"operation\""}}"#
             );
+        }
+    }
+
+    mod create_request {
+        use super::*;
+
+        #[test]
+        fn create_addition_request() {
+            let request = create_request(Command::Addition(CommandData {
+                lhs: 10.0,
+                rhs: 5.0,
+            }))
+            .expect("request should serialize");
+
+            let request = String::from_utf8(request).expect("request should be valid UTF-8");
+
+            assert_eq!(
+                request,
+                r#"{"version":"1.0","command":"ADDITION","data":{"lhs":10.0,"rhs":5.0}}"#
+            );
+        }
+    }
+
+    mod parse_response {
+        use super::*;
+
+        #[test]
+        fn parse_result_response() {
+            let data = br#"
+        {
+            "version": "1.0",
+            "type": "RESULT",
+            "data": {
+                "result": 15.0
+            }
+        }
+        "#;
+
+            let result = parse_response(data).expect("response should be valid");
+
+            assert_eq!(result, MathResult::result(15.0));
         }
     }
 }

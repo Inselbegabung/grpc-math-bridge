@@ -1,0 +1,10 @@
+[package]
+name = "cli-app"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { workspace = true, features = ["io-util", "net", "rt-multi-thread"] }
+async-trait.workspace = true
+
+protocol.workspace = true

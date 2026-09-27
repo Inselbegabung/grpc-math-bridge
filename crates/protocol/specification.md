@@ -20,6 +20,13 @@ sequenceDiagram
 
 The current protocol version is `1.0`.
 
+### Message Framing
+
+Messages are encoded as UTF-8 JSON and terminated by a newline character (`\n`).
+
+Each connection contains a single request followed by a single response.
+
+
 ## Request
 
 A request is encoded as a JSON object with the following structure:
@@ -73,12 +80,15 @@ For example, an addition request is:
 
 The daemon returns either a `RESULT` or an `ERROR` response.
 
+Every response contains the protocol version used by the daemon.
+
 ### Result
 
 A successful operation returns:
 
 ```json
 {
+  "version": "1.0",
   "type": "RESULT",
   "data": {
     "result": 15.0
@@ -90,6 +100,7 @@ The response contains:
 
 | Field | Type | Description |
 | --- | --- | --- |
+| `version` | string | Protocol version. Currently `1.0`. |
 | `type` | string | Response type. `RESULT` for a successful operation. |
 | `data.result` | number | Result of the math operation. |
 
@@ -99,6 +110,7 @@ If the operation cannot be completed, the daemon returns:
 
 ```json
 {
+  "version": "1.0",
   "type": "ERROR",
   "data": {
     "error": "division by zero"
@@ -110,5 +122,6 @@ The error response contains:
 
 | Field | Type | Description |
 | --- | --- | --- |
+| `version` | string | Protocol version. Currently `1.0`. |
 | `type` | string | Response type. `ERROR` when an operation fails. |
 | `data.error` | string | Description of the error. |

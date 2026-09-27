@@ -110,6 +110,35 @@ The project uses the following quality gates:
   cargo test
   ```
 
+### CLI App
+
+The CLI app provides a command-line interface for communicating with the daemon over the Unix socket.
+
+Before running the CLI app, make sure the daemon is running and listening on `/tmp/math.sock`.
+
+To run the CLI app:
+
+```bash
+cargo run --bin cli-app  
+```
+
+The CLI app sends a math command to the daemon and prints the returned result.
+
+Currently, the application sends the following addition command:
+
+```
+1 + 1
+```
+
+The result is printed to the terminal:  
+
+```
+Result Ok(Result(ResultData { result: 2.0 }))
+```
+
+The CLI app communicates with the daemon using the [Unix Socket Protocol Specification](crates/protocol/specification.md).
+
+
 ## Logging
 
 All crates use `tracing` for logging. The log level can be configured using the `RUST_LOG` environment variable.
