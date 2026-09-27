@@ -15,6 +15,7 @@ prost = "0.14"
 tracing.workspace = true
 tracing-subscriber.workspace = true
 clap.workspace = true
+tokio-stream = { version = "0.1.19", features = ["net"] }
 
 
 [build-dependencies]

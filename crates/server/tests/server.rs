@@ -1,25 +1,28 @@
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::net::{Ipv4Addr, SocketAddr};
 
 use server::server::{
     proto::math::{OperationRequest, math_service_client::MathServiceClient},
-    run,
+    run_with_listener,
 };
-use tokio::task::JoinHandle;
+use tokio::{net::TcpListener, task::JoinHandle};
 
-async fn start_server(socket_addr: SocketAddr) -> JoinHandle<()> {
+async fn start_server() -> (SocketAddr, JoinHandle<()>) {
+    let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0))
+        .await
+        .expect("bind test server");
+
+    let socket_addr = listener.local_addr().expect("get test server address");
+
     let server = tokio::spawn(async move {
-        run(socket_addr).await;
+        run_with_listener(listener).await;
     });
 
-    // Give the server time to start, optional we can rework the `run` function to accept a `TcpListener`
-    tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-    server
+    (socket_addr, server)
 }
 
 #[tokio::test]
 async fn test_addition() {
-    let socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 50052);
-    let server = start_server(socket_addr).await;
+    let (socket_addr, server) = start_server().await;
 
     let mut client = MathServiceClient::connect(format!("http://{socket_addr}"))
         .await
@@ -41,8 +44,7 @@ async fn test_addition() {
 
 #[tokio::test]
 async fn test_subtraction() {
-    let socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 50052);
-    let server = start_server(socket_addr).await;
+    let (socket_addr, server) = start_server().await;
 
     let mut client = MathServiceClient::connect(format!("http://{socket_addr}"))
         .await
@@ -64,8 +66,7 @@ async fn test_subtraction() {
 
 #[tokio::test]
 async fn test_multiplication() {
-    let socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 50052);
-    let server = start_server(socket_addr).await;
+    let (socket_addr, server) = start_server().await;
 
     let mut client = MathServiceClient::connect(format!("http://{socket_addr}"))
         .await
@@ -87,8 +88,7 @@ async fn test_multiplication() {
 
 #[tokio::test]
 async fn test_division() {
-    let socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 50052);
-    let server = start_server(socket_addr).await;
+    let (socket_addr, server) = start_server().await;
 
     let mut client = MathServiceClient::connect(format!("http://{socket_addr}"))
         .await
@@ -118,8 +118,7 @@ async fn test_division() {
 
 #[tokio::test]
 async fn test_errors() {
-    let socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 50052);
-    let server = start_server(socket_addr).await;
+    let (socket_addr, server) = start_server().await;
 
     let mut client = MathServiceClient::connect(format!("http://{socket_addr}"))
         .await
