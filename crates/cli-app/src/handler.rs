@@ -8,12 +8,12 @@ pub trait Bridge {
 
 pub async fn handle(command: Command, bridge: impl Bridge) -> Result<protocol::MathResult, String> {
     let request_data =
-        protocol::create_request(command).map_err(|e| format!("Parse request failed '{e:?}'"))?;
+        protocol::encode_request(command).map_err(|e| format!("Parse request failed '{e:?}'"))?;
     let response_data = bridge
         .send(request_data)
         .await
         .map_err(|e| format!("Send request failed '{e:?}'"))?;
-    protocol::parse_response(&response_data).map_err(|e| format!("Parse request failed '{e:?}'"))
+    protocol::decode_response(&response_data).map_err(|e| format!("Parse request failed '{e:?}'"))
 }
 
 #[cfg(test)]

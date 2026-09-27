@@ -37,7 +37,7 @@ where
         match handle(&mut self.grpc_client, input).await {
             Ok(response) => response,
             Err(err) => {
-                protocol::create_response(protocol::MathResult::error(err)).unwrap_or_else(|e| {
+                protocol::encode_response(protocol::MathResult::error(err)).unwrap_or_else(|e| {
                     warn!("The protocol parser failed to create a response '{e:?}'");
                     b"Internal Error".to_vec()
                 })
@@ -48,9 +48,9 @@ where
 
 async fn handle(math: &mut impl MathService, input: Vec<u8>) -> Result<Vec<u8>, String> {
     let request =
-        protocol::parse_request(&input).map_err(|e| format!("Parse request failed: {e:?}"))?;
+        protocol::decode_request(&input).map_err(|e| format!("Parse request failed: {e:?}"))?;
     let result = handle_command(math, request).await?;
-    protocol::create_response(result).map_err(|e| {
+    protocol::encode_response(result).map_err(|e| {
         warn!("Parse response failed: {e:?}");
         "Internal error".to_string()
     })

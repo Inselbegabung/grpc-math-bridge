@@ -88,7 +88,7 @@ impl MathResult {
     }
 }
 
-pub fn parse_request(data: &[u8]) -> Result<Command, Error> {
+pub fn decode_request(data: &[u8]) -> Result<Command, Error> {
     let header: RequestHeader = serde_json::from_slice(data)?;
     if header.version != PROTOCOL_VERSION {
         return Err(Error::UnsupportedVersion);
@@ -98,7 +98,7 @@ pub fn parse_request(data: &[u8]) -> Result<Command, Error> {
     Ok(request.command)
 }
 
-pub fn create_request(command: Command) -> Result<Vec<u8>, Error> {
+pub fn encode_request(command: Command) -> Result<Vec<u8>, Error> {
     let request = FullRequest {
         version: PROTOCOL_VERSION.to_string(),
         command,
@@ -106,7 +106,7 @@ pub fn create_request(command: Command) -> Result<Vec<u8>, Error> {
     serde_json::to_vec(&request).map_err(Into::into)
 }
 
-pub fn parse_response(data: &[u8]) -> Result<MathResult, Error> {
+pub fn decode_response(data: &[u8]) -> Result<MathResult, Error> {
     let header: RequestHeader = serde_json::from_slice(data)?;
     if header.version != PROTOCOL_VERSION {
         return Err(Error::UnsupportedVersion);
@@ -116,7 +116,7 @@ pub fn parse_response(data: &[u8]) -> Result<MathResult, Error> {
     Ok(result)
 }
 
-pub fn create_response(result: MathResult) -> Result<Vec<u8>, Error> {
+pub fn encode_response(result: MathResult) -> Result<Vec<u8>, Error> {
     let response = FullResponse {
         version: PROTOCOL_VERSION.to_string(),
         result,
@@ -145,7 +145,7 @@ mod tests {
         }
         "#;
 
-            let result = parse_request(data).expect("request should be valid");
+            let result = decode_request(data).expect("request should be valid");
 
             assert_eq!(
                 result,
@@ -169,7 +169,7 @@ mod tests {
         }
         "#;
 
-            let result = parse_request(data).expect("request should be valid");
+            let result = decode_request(data).expect("request should be valid");
 
             assert_eq!(
                 result,
@@ -193,7 +193,7 @@ mod tests {
         }
         "#;
 
-            let result = parse_request(data).expect("request should be valid");
+            let result = decode_request(data).expect("request should be valid");
 
             assert_eq!(
                 result,
@@ -217,7 +217,7 @@ mod tests {
         }
         "#;
 
-            let result = parse_request(data).expect("request should be valid");
+            let result = decode_request(data).expect("request should be valid");
 
             assert_eq!(
                 result,
@@ -241,7 +241,7 @@ mod tests {
         }
         "#;
 
-            let result = parse_request(data);
+            let result = decode_request(data);
 
             assert!(matches!(result, Err(Error::UnsupportedVersion)));
         }
@@ -250,7 +250,7 @@ mod tests {
         fn reject_invalid_json() {
             let data = br#"{ invalid json }"#;
 
-            let result = parse_request(data);
+            let result = decode_request(data);
 
             assert!(matches!(result, Err(Error::Serialize(_))));
         }
@@ -268,7 +268,7 @@ mod tests {
         }
         "#;
 
-            let result = parse_request(data);
+            let result = decode_request(data);
 
             assert!(matches!(result, Err(Error::Serialize(_))));
         }
@@ -282,7 +282,7 @@ mod tests {
         }
         "#;
 
-            let result = parse_request(data);
+            let result = decode_request(data);
 
             assert!(matches!(result, Err(Error::Serialize(_))));
         }
@@ -294,7 +294,7 @@ mod tests {
         #[test]
         fn create_result_response() {
             let response =
-                create_response(MathResult::result(15.0)).expect("response should serialize");
+                encode_response(MathResult::result(15.0)).expect("response should serialize");
             let response = String::from_utf8(response).expect("response should be valid UTF-8");
             assert_eq!(
                 response,
@@ -305,7 +305,7 @@ mod tests {
         #[test]
         fn create_negative_result_response() {
             let response =
-                create_response(MathResult::result(-15.5)).expect("response should serialize");
+                encode_response(MathResult::result(-15.5)).expect("response should serialize");
             let response = String::from_utf8(response).expect("response should be valid UTF-8");
             assert_eq!(
                 response,
@@ -316,7 +316,7 @@ mod tests {
         #[test]
         fn create_zero_result_response() {
             let response =
-                create_response(MathResult::result(0.0)).expect("response should serialize");
+                encode_response(MathResult::result(0.0)).expect("response should serialize");
             let response = String::from_utf8(response).expect("response should be valid UTF-8");
             assert_eq!(
                 response,
@@ -326,7 +326,7 @@ mod tests {
 
         #[test]
         fn create_error_response() {
-            let response = create_response(MathResult::error("division by zero".to_string()))
+            let response = encode_response(MathResult::error("division by zero".to_string()))
                 .expect("response should serialize");
             let response = String::from_utf8(response).expect("response should be valid UTF-8");
             assert_eq!(
@@ -337,7 +337,7 @@ mod tests {
 
         #[test]
         fn create_error_response_escapes_special_characters() {
-            let response = create_response(MathResult::error(r#"invalid "operation""#.to_string()))
+            let response = encode_response(MathResult::error(r#"invalid "operation""#.to_string()))
                 .expect("response should serialize");
             let response = String::from_utf8(response).expect("response should be valid UTF-8");
             assert_eq!(
@@ -352,7 +352,7 @@ mod tests {
 
         #[test]
         fn create_addition_request() {
-            let request = create_request(Command::Addition(CommandData {
+            let request = encode_request(Command::Addition(CommandData {
                 lhs: 10.0,
                 rhs: 5.0,
             }))
@@ -382,7 +382,7 @@ mod tests {
         }
         "#;
 
-            let result = parse_response(data).expect("response should be valid");
+            let result = decode_response(data).expect("response should be valid");
 
             assert_eq!(result, MathResult::result(15.0));
         }
