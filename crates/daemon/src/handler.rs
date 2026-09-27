@@ -1,4 +1,3 @@
-use protocol;
 use tracing::{debug, warn};
 
 #[cfg_attr(test, mockall::automock)]

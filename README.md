@@ -90,6 +90,7 @@ The project uses the following quality gates:
 
 - Check for unused dependencies:
   ```bash
+  cargo install cargo-machete
   cargo machete
   ```
 

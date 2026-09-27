@@ -11,7 +11,7 @@ pub mod proto {
 }
 
 pub async fn run(socket_addr: SocketAddr) {
-    let math_service = MathServer::default();
+    let math_service = MathServer;
 
     info!("Start server on address '{socket_addr:?}'");
     Server::builder()
