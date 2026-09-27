@@ -114,26 +114,31 @@ The project uses the following quality gates:
 
 The CLI app provides a command-line interface for communicating with the daemon over the Unix socket.
 
-Before running the CLI app, make sure the daemon is running and listening on `/tmp/math.sock`.
+Before running the CLI app, make sure the daemon is running and listening on the configured Unix socket.
 
-To run the CLI app:
+To evaluate a math expression:
 
-```bash
-cargo run --bin cli-app  
+```bash id="0ghfks"
+cargo run --bin cli-app -- "1 + 1"
 ```
 
-The CLI app sends a math command to the daemon and prints the returned result.
+The CLI app supports the following operators:
 
-Currently, the application sends the following addition command:
+- `+` — Addition
+- `-` — Subtraction
+- `*` — Multiplication
+- `/` — Division
 
+For example:
+
+```bash id="itpug8"
+cargo run --bin cli-app -- "10.5 * 2"
 ```
-1 + 1
-```
 
-The result is printed to the terminal:  
+By default, the CLI app connects to `/tmp/math.sock`. A different Unix socket can be specified using `--socket-path`:
 
-```
-Result Ok(Result(ResultData { result: 2.0 }))
+```bash id="4f0s65"
+cargo run --bin cli-app -- --socket-path /tmp/custom.sock "10 / 2"
 ```
 
 The CLI app communicates with the daemon using the [Unix Socket Protocol Specification](crates/protocol/specification.md).

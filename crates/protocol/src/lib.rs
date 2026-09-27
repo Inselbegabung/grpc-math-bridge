@@ -2,13 +2,13 @@ use serde::{Deserialize, Serialize};
 
 pub const PROTOCOL_VERSION: &str = "1.0";
 
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Copy, Clone, Deserialize, Serialize, PartialEq)]
 pub struct CommandData {
     pub lhs: f64,
     pub rhs: f64,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Copy, Clone, Deserialize, Serialize, PartialEq)]
 #[serde(tag = "command", content = "data", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Command {
     Addition(CommandData),
