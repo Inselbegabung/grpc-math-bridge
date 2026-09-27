@@ -17,14 +17,22 @@ struct Cli {
 
 impl Cli {
     pub fn host_socket(&self) -> SocketAddr {
-        let addr_str = format!("{}:{}", self.host, self.port);
-        addr_str.parse().expect("valid socket")
+        self.host_socket_str().parse().expect("valid socket")
+    }
+
+    pub fn host_socket_str(&self) -> String {
+        format!("{}:{}", self.host, self.port)
     }
 }
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .init();
+
     let cli = Cli::parse();
     let addr = cli.host_socket();
+
     server::run(addr).await;
 }

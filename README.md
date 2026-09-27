@@ -63,3 +63,15 @@ The project uses the following quality gates:
   ```bash
   cargo test
   ```
+
+## Logging
+
+All crates use `tracing` for logging. The log level can be configured using the `RUST_LOG` environment variable.
+
+For example, to enable `info`-level logging when running the server:
+
+```bash
+RUST_LOG=info cargo run --bin server
+```
+
+Other log levels, such as `debug`, `warn`, or `error`, can be configured in the same way.
