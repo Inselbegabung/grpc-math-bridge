@@ -129,7 +129,7 @@ pub fn encode_response(result: MathResult) -> Result<Vec<u8>, Error> {
 mod tests {
     use super::*;
 
-    mod parse_request {
+    mod decode_request {
         use super::*;
 
         #[test]
@@ -288,7 +288,7 @@ mod tests {
         }
     }
 
-    mod create_response {
+    mod encode_response {
         use super::*;
 
         #[test]
@@ -347,7 +347,7 @@ mod tests {
         }
     }
 
-    mod create_request {
+    mod encode_request {
         use super::*;
 
         #[test]
@@ -367,7 +367,7 @@ mod tests {
         }
     }
 
-    mod parse_response {
+    mod decode_response {
         use super::*;
 
         #[test]
