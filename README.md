@@ -58,11 +58,8 @@ The Unix socket can be tested using `socat`, for example:
 socat - UNIX-CONNECT:/tmp/math.sock
 ```
 
-After establishing the connection, the daemon should produce a log message similar to:
+After establishing the connection, a message can be sent and the client should answer with `Not implemented yet`.
 
-```text
-2026-09-27T07:24:06.987416Z DEBUG daemon::bridge: Connection from: (unnamed)
-```
 
 ## Quality Gates
 

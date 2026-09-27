@@ -1,7 +1,9 @@
 mod bridge;
 mod grpc_client;
+mod handler;
 
 use grpc_client::GrpcClient;
+use handler::MathService;
 use tracing::{debug, info};
 
 async fn shutdown_signal() {
@@ -31,11 +33,12 @@ async fn main() {
 
     println!("Result {result}");
 
+    let handler = handler::Handler::new(client);
     let bridge = bridge::UnixSocket::new("/tmp/math.sock")
         .await
         .expect("working unix socket");
 
-    bridge.run(shutdown_signal()).await;
+    bridge.run(handler, shutdown_signal()).await;
 
     info!("Bride daemon shutdown.")
 }

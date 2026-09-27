@@ -1,5 +1,5 @@
+use crate::handler::Handle;
 use std::path::PathBuf;
-
 use tokio::net::UnixListener;
 use tokio::{
     io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
@@ -20,15 +20,31 @@ impl UnixSocket {
         })
     }
 
-    pub async fn run(&self, shutdown: impl Future<Output = ()>) {
+    pub async fn run<H>(&self, handler: H, shutdown: impl Future<Output = ()>)
+    where
+        H: Handle + Clone + Send + Sync + 'static,
+    {
         tokio::pin!(shutdown);
 
         loop {
             tokio::select! {
                 result = self.unix_listener.accept() => {
                     match result {
-                        Ok((_stream, socket)) => {
+                        Ok((stream, socket)) => {
                             debug!("Connection from: {socket:?}");
+
+                            let mut inner_handler = handler.clone();
+
+                            tokio::spawn(async move {
+                                if let Err(err) =
+                                    handle_connection(
+                                        stream,
+                                        &mut inner_handler,
+                                    ).await
+                                {
+                                    error!("Connection failed: {err}");
+                                }
+                            });
                         }
 
                         Err(err) => {
@@ -67,4 +83,43 @@ async fn initialize_socket(socket_path: &str) -> UnixListener {
     }
 
     UnixListener::bind(socket_path).expect("unix listener binding")
+}
+
+pub async fn handle_connection(
+    stream: UnixStream,
+    handler: &mut impl Handle,
+) -> Result<(), String> {
+    let (reader, mut writer) = stream.into_split();
+
+    let bytes = read_request(reader).await?;
+
+    let response_bytes = handler.handle(bytes).await;
+
+    writer
+        .write_all(&response_bytes)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    writer.write_all(b"\n").await.map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+async fn read_request(stream: OwnedReadHalf) -> Result<Vec<u8>, String> {
+    const MAX_REQUEST_SIZE: u64 = 4096;
+
+    let mut data = Vec::new();
+    let reader = BufReader::new(stream);
+
+    let bytes_read = reader
+        .take(MAX_REQUEST_SIZE + 1)
+        .read_until(b'\n', &mut data)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if bytes_read > MAX_REQUEST_SIZE as usize {
+        return Err("Unix socket message too large.".into());
+    }
+
+    Ok(data)
 }

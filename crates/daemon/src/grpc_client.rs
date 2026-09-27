@@ -1,45 +1,58 @@
+use crate::handler::MathService;
 use server::server::proto::math::{OperationRequest, math_service_client::MathServiceClient};
 use tonic::transport::{Channel, Error};
 
 #[derive(Debug, Clone)]
 pub struct GrpcClient {
-    client: MathServiceClient<Channel>,
+    math: MathServiceClient<Channel>,
 }
 
 #[allow(unused)]
 impl GrpcClient {
     pub async fn connect(endpoint: impl Into<String>) -> Result<Self, Error> {
-        let client = MathServiceClient::connect(endpoint.into()).await?;
+        let math = MathServiceClient::connect(endpoint.into()).await?;
 
-        Ok(Self { client })
+        Ok(Self { math })
     }
+}
 
-    pub async fn addition(&mut self, lhs: f64, rhs: f64) -> Result<f64, tonic::Status> {
-        let response = self.client.addition(OperationRequest { lhs, rhs }).await?;
+#[async_trait::async_trait]
+impl MathService for GrpcClient {
+    async fn addition(&mut self, lhs: f64, rhs: f64) -> Result<f64, String> {
+        let response = self
+            .math
+            .addition(OperationRequest { lhs, rhs })
+            .await
+            .map_err(|e| e.to_string())?;
 
         Ok(response.into_inner().result)
     }
 
-    pub async fn subtraction(&mut self, lhs: f64, rhs: f64) -> Result<f64, tonic::Status> {
+    async fn subtraction(&mut self, lhs: f64, rhs: f64) -> Result<f64, String> {
         let response = self
-            .client
+            .math
             .subtraction(OperationRequest { lhs, rhs })
-            .await?;
+            .await
+            .map_err(|e| e.to_string())?;
 
         Ok(response.into_inner().result)
     }
 
-    pub async fn multiplication(&mut self, lhs: f64, rhs: f64) -> Result<f64, tonic::Status> {
+    async fn multiplication(&mut self, lhs: f64, rhs: f64) -> Result<f64, String> {
         let response = self
-            .client
+            .math
             .multiplication(OperationRequest { lhs, rhs })
-            .await?;
+            .await
+            .map_err(|e| e.to_string())?;
 
         Ok(response.into_inner().result)
     }
-
-    pub async fn division(&mut self, lhs: f64, rhs: f64) -> Result<f64, tonic::Status> {
-        let response = self.client.division(OperationRequest { lhs, rhs }).await?;
+    async fn division(&mut self, lhs: f64, rhs: f64) -> Result<f64, String> {
+        let response = self
+            .math
+            .division(OperationRequest { lhs, rhs })
+            .await
+            .map_err(|e| e.to_string())?;
 
         Ok(response.into_inner().result)
     }
