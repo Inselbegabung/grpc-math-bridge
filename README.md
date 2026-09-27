@@ -2,13 +2,31 @@
 
 A Rust-based gRPC math service with a Unix domain socket bridge and CLI client.
 
-## Toolchain
+```mermaid
+flowchart LR
+    CLI["CLI App"]
+    Daemon["Bridge Daemon"]
+    Server["Math Server"]
 
-The following tools are required to work on this project:
+    CLI <-->|"Unix Domain Socket<br/>JSON"| Daemon
+    Daemon <-->|"gRPC / Protobuf"| Server
+```
 
-- Rust and Cargo
-  - Rust version `1.98.1`, as specified in `rust-toolchain.toml`
-- `protoc` (https://protobuf.dev/downloads/) version `35.0`
+
+## System Requirements
+
+- Linux
+- Rust 1.98.1
+- protoc 35.0 (https://protobuf.dev/downloads/)
+- `socat` (optional, for manually testing the Unix socket)
+
+## Build
+
+Clone the repository and build the complete workspace:
+
+```bash
+cargo build --workspace
+```
 
 ## Crates
 
@@ -22,7 +40,7 @@ To run the server:
 cargo run --bin server
 ```
 
-The server provides a CLI interface for configuring the host IP and port. Run:
+The server provides a CLI interface for configuring the host address and port. Run:
 
 ```bash
 cargo run --bin server -- -h
@@ -85,30 +103,6 @@ The protocol defines the available math commands, request and response formats, 
 
 See the [Unix Socket Protocol Specification](crates/protocol/specification.md) for details.
 
-## Quality Gates
-
-The project uses the following quality gates:
-
-- Check code formatting:
-  ```bash
-  cargo fmt --check
-  ```
-
-- Run Clippy:
-  ```bash
-  cargo clippy
-  ```
-
-- Check for unused dependencies:
-  ```bash
-  cargo install cargo-machete
-  cargo install cargo-machete --version 0.9.2 --locked
-  ```
-
-- All tests must succeed:
-  ```bash
-  cargo test
-  ```
 
 ### CLI App
 
@@ -142,6 +136,34 @@ cargo run --bin cli-app -- --socket-path /tmp/custom.sock "10 / 2"
 ```
 
 The CLI app communicates with the daemon using the [Unix Socket Protocol Specification](crates/protocol/specification.md).
+
+
+
+
+## Quality Gates
+
+The project uses the following quality gates:
+
+- Check code formatting:
+  ```bash
+  cargo fmt --all -- --check
+  ```
+
+- Run Clippy:
+  ```bash
+  cargo clippy --workspace --all-targets --all-features -- -D warnings
+  ```
+
+- Check for unused dependencies:
+  ```bash
+  cargo install cargo-machete --locked
+  cargo machete
+  ```
+
+- All tests must succeed:
+  ```bash
+  cargo test --workspace --all-features
+  ```
 
 
 ## Logging
