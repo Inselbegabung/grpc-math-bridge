@@ -7,7 +7,7 @@ target
 **/*.rs.bk
 
 # IDE
-./vscode
+.vscode
 
 # config files
 daemon_config.json
