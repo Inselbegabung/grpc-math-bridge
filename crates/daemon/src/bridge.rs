@@ -123,25 +123,59 @@ async fn read_request(stream: OwnedReadHalf) -> Result<Vec<u8>, String> {
 mod test {
     use super::*;
 
-    mod initialize_socket {
-        use super::initialize_socket;
+    use crate::handler::MockHandle;
+    use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
-        #[tokio::test]
-        async fn initialize_socket_creates_unix_socket() {
-            let temp_dir = tempfile::tempdir().expect("create temp directory");
+    #[tokio::test]
+    async fn initialize_socket_creates_unix_socket() {
+        let temp_dir = tempfile::tempdir().expect("create temp directory");
 
-            let socket_path = temp_dir.path().join("math.sock");
+        let socket_path = temp_dir.path().join("math.sock");
 
-            assert!(!socket_path.exists());
+        assert!(!socket_path.exists());
 
-            let _listener = initialize_socket(
-                socket_path
-                    .to_str()
-                    .expect("socket path should be valid UTF-8"),
-            )
-            .await;
+        let _listener = initialize_socket(
+            socket_path
+                .to_str()
+                .expect("socket path should be valid UTF-8"),
+        )
+        .await;
 
-            assert!(socket_path.exists());
-        }
+        assert!(socket_path.exists());
+    }
+
+    #[tokio::test]
+    async fn handle_connection_forwards_request_to_handler() {
+        let (client, server) = UnixStream::pair().expect("create unix stream pair");
+
+        let mut handler = MockHandle::new();
+
+        handler
+            .expect_handle()
+            .with(mockall::predicate::eq(b"request\n".to_vec()))
+            .times(1)
+            .returning(|_| b"response".to_vec());
+
+        let server_task = tokio::spawn(async move {
+            handle_connection(server, &mut handler)
+                .await
+                .expect("handle connection");
+        });
+
+        let (reader, mut writer) = client.into_split();
+
+        writer.write_all(b"request\n").await.expect("write request");
+
+        let mut reader = BufReader::new(reader);
+        let mut response = String::new();
+
+        reader
+            .read_line(&mut response)
+            .await
+            .expect("read response");
+
+        assert_eq!(response, "response\n");
+
+        server_task.await.expect("server task");
     }
 }

@@ -3,7 +3,6 @@ mod grpc_client;
 mod handler;
 
 use grpc_client::GrpcClient;
-use handler::MathService;
 use tracing::{debug, info};
 
 async fn shutdown_signal() {

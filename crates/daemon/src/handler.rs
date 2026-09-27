@@ -1,13 +1,14 @@
 use protocol;
-use tracing::{info, warn};
+use tracing::{debug, warn};
 
+#[cfg_attr(test, mockall::automock)]
 #[async_trait::async_trait]
 pub trait Handle {
     async fn handle(&mut self, input: Vec<u8>) -> Vec<u8>;
 }
 
+#[cfg_attr(test, mockall::automock)]
 #[async_trait::async_trait]
-#[allow(unused)]
 pub trait MathService {
     async fn addition(&mut self, lhs: f64, rhs: f64) -> Result<f64, String>;
     async fn subtraction(&mut self, lhs: f64, rhs: f64) -> Result<f64, String>;
@@ -32,7 +33,7 @@ where
     M: MathService + Send + Sync,
 {
     async fn handle(&mut self, input: Vec<u8>) -> Vec<u8> {
-        info!("Message received,{input:?}");
+        debug!("Message received,{input:?}");
 
         match handle(&mut self.grpc_client, input).await {
             Ok(response) => response,
@@ -77,5 +78,32 @@ async fn handle_command(
             let result = math.division(data.lhs, data.rhs).await?;
             Ok(protocol::MathResult::result(result))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn handle_addition() {
+        let mut math_service = MockMathService::new();
+
+        math_service
+            .expect_addition()
+            .with(mockall::predicate::eq(10.0), mockall::predicate::eq(5.0))
+            .times(1)
+            .returning(|_, _| Ok(15.0));
+
+        let mut handler = Handler::new(math_service);
+
+        let request =
+            br#"{"version":"1.0","command":"ADDITION","data":{"lhs":10.0,"rhs":5.0}}"#.to_vec();
+
+        let response = handler.handle(request).await;
+
+        let response = String::from_utf8(response).expect("response should be valid UTF-8");
+
+        assert_eq!(response, r#"{"type":"RESULT","data":{"result":15.0}}"#);
     }
 }
