@@ -138,8 +138,6 @@ cargo run --bin cli-app -- --socket-path /tmp/custom.sock "10 / 2"
 The CLI app communicates with the daemon using the [Unix Socket Protocol Specification](crates/protocol/specification.md).
 
 
-
-
 ## Quality Gates
 
 The project uses the following quality gates:
@@ -163,6 +161,11 @@ The project uses the following quality gates:
 - All tests must succeed:
   ```bash
   cargo test --workspace --all-features
+  ```
+
+- Lint Protocol Buffer definitions:
+  ```bash
+  protolint lint proto/
   ```
 
 

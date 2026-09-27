@@ -50,3 +50,6 @@ jobs:
 
       - name: Check unused dependencies
         run: cargo machete
+
+      - name: Lint protobuf
+        run: protolint lint proto/
