@@ -58,3 +58,8 @@ The project uses the following quality gates:
   ```bash
   cargo machete
   ```
+
+- All tests muss succeed:
+  ```bash
+  cargo test
+  ```
