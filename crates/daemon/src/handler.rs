@@ -103,6 +103,9 @@ mod tests {
 
         let response = String::from_utf8(response).expect("response should be valid UTF-8");
 
-        assert_eq!(response, r#"{"type":"RESULT","data":{"result":15.0}}"#);
+        assert_eq!(
+            response,
+            r#"{"version":"1.0","type":"RESULT","data":{"result":15.0}}"#
+        );
     }
 }

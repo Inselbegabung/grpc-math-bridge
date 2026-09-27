@@ -36,7 +36,7 @@ async fn open_socket(socket_path: &str) -> Result<(OwnedReadHalf, OwnedWriteHalf
 
 async fn write_message(mut writer: OwnedWriteHalf, data: &[u8]) -> Result<(), String> {
     writer
-        .write_all(&data)
+        .write_all(data)
         .await
         .map_err(|e| e.to_string())
         .map_err(|e| e.to_string())?;
