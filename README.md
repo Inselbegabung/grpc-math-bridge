@@ -102,10 +102,10 @@ The project uses the following quality gates:
 - Check for unused dependencies:
   ```bash
   cargo install cargo-machete
-  cargo machete
+  cargo install cargo-machete --version 0.9.2 --locked
   ```
 
-- All tests muss succeed:
+- All tests must succeed:
   ```bash
   cargo test
   ```
