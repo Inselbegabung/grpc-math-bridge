@@ -20,12 +20,15 @@ async fn main() {
         std::process::exit(1);
     });
 
-    print_result(result);
+    handle_result(result);
 }
 
-fn print_result(result: protocol::MathResult) {
+fn handle_result(result: protocol::MathResult) {
     match result {
         protocol::MathResult::Result(data) => println!("{}", data.result),
-        protocol::MathResult::Error(data) => eprintln!("Error: {}", data.error),
+        protocol::MathResult::Error(data) => {
+            eprintln!("Error: {}", data.error);
+            std::process::exit(1);
+        }
     }
 }
