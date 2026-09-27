@@ -15,7 +15,7 @@ pub struct UnixSocket {
 impl UnixSocket {
     pub async fn new(socket_path: &str) -> Result<Self, String> {
         Ok(Self {
-            unix_listener: initialize_socket(socket_path).await,
+            unix_listener: initialize_socket(socket_path).await?,
             socket_path: PathBuf::from(socket_path),
         })
     }
@@ -72,12 +72,17 @@ impl Drop for UnixSocket {
     }
 }
 
-async fn initialize_socket(socket_path: &str) -> UnixListener {
-    tokio::fs::try_exists(socket_path)
+async fn initialize_socket(socket_path: &str) -> Result<UnixListener, String> {
+    if tokio::fs::try_exists(socket_path)
         .await
-        .expect("The socket '{}' already exists, remove it or select an other socket.");
+        .map_err(|e| format!("Socket existence couldn't be checked, error: {e}."))?
+    {
+        return Err(format!(
+            "The socket '{socket_path}' already exists, remove it or select an other socket."
+        ));
+    }
 
-    UnixListener::bind(socket_path).expect("unix listener binding")
+    Ok(UnixListener::bind(socket_path).expect("unix listener binding"))
 }
 
 pub async fn handle_connection(
@@ -142,6 +147,26 @@ mod test {
         .await;
 
         assert!(socket_path.exists());
+    }
+
+    #[tokio::test]
+    async fn initialize_socket_fails_if_socket_already_exists() {
+        let temp_dir = tempfile::tempdir().expect("create temp directory");
+        let socket_path = temp_dir.path().join("math.sock");
+
+        let socket_path = socket_path
+            .to_str()
+            .expect("socket path should be valid UTF-8");
+
+        let listener = initialize_socket(socket_path)
+            .await
+            .expect("initialize first socket");
+
+        let result = initialize_socket(socket_path).await;
+
+        assert!(result.is_err());
+
+        drop(listener);
     }
 
     #[tokio::test]
