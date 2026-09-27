@@ -4,9 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-server.workspace = true
 tonic.workspace = true
 tokio = { workspace = true, features = ["fs"] }
 tracing.workspace = true
 tracing-subscriber.workspace = true
 async-trait = "0.1.92"
+
+server.workspace = true
+protocol.workspace = true

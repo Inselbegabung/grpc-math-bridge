@@ -22,16 +22,9 @@ async fn main() {
 
     info!("Bride daemon started.");
 
-    let mut client = GrpcClient::connect("http://127.0.0.1:50051")
+    let client = GrpcClient::connect("http://127.0.0.1:50051")
         .await
         .expect("connected grpc client");
-
-    let result = client
-        .multiplication(10.0, 5.0)
-        .await
-        .expect("valid request");
-
-    println!("Result {result}");
 
     let handler = handler::Handler::new(client);
     let bridge = bridge::UnixSocket::new("/tmp/math.sock")

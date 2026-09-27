@@ -50,16 +50,29 @@ To run the daemon:
 cargo run --bin daemon
 ```
 
-A connection to the daemon can be established using a Unix socket. Currently, the daemon sends a request to the gRPC server on startup, prints the result, and then opens the Unix socket for testing purposes.
+A connection to the daemon can be established using a Unix socket.
 
-The Unix socket can be tested using `socat`, for example:
+The Unix socket can be tested using `socat`:
 
 ```bash
 socat - UNIX-CONNECT:/tmp/math.sock
 ```
 
-After establishing the connection, a message can be sent and the client should answer with `Not implemented yet`.
+Once the connection is established, requests can be sent as JSON messages. For example:
 
+```json
+{"version":"1.0","command":"ADDITION","data":{"lhs":10.0,"rhs":5.0}}
+```
+
+The daemon processes the request, forwards the corresponding operation to the gRPC server, and returns the result over the Unix socket. See the [Unix Socket Protocol Specification](crates/protocol/specification.md) for details about the protocol.
+
+## Protocol
+
+The communication between the client and daemon uses a JSON-based protocol over a Unix socket.
+
+The protocol defines the available math commands, request and response formats, error responses, and protocol versioning.
+
+See the [Unix Socket Protocol Specification](crates/protocol/specification.md) for details.
 
 ## Quality Gates
 
