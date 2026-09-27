@@ -95,15 +95,6 @@ The daemon processes the request, forwards the corresponding operation to the gR
 See the [Unix Socket Protocol Specification](crates/protocol/specification.md) for details about the protocol.
 
 
-## Protocol
-
-The communication between the client and daemon uses a JSON-based protocol over a Unix socket.
-
-The protocol defines the available math commands, request and response formats, error responses, and protocol versioning.
-
-See the [Unix Socket Protocol Specification](crates/protocol/specification.md) for details.
-
-
 ### CLI App
 
 The CLI app provides a command-line interface for communicating with the daemon over the Unix socket.
@@ -136,6 +127,15 @@ cargo run --bin cli-app -- --socket-path /tmp/custom.sock "10 / 2"
 ```
 
 The CLI app communicates with the daemon using the [Unix Socket Protocol Specification](crates/protocol/specification.md).
+
+
+## Protocol
+
+The communication between the client and daemon uses a JSON-based protocol over a Unix socket.
+
+The protocol defines the available math commands, request and response formats, error responses, and protocol versioning.
+
+See the [Unix Socket Protocol Specification](crates/protocol/specification.md) for details.
 
 
 ## Quality Gates
