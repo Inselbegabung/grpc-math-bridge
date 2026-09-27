@@ -18,7 +18,7 @@ pub enum Command {
 }
 
 #[derive(Debug, Deserialize)]
-struct RequestHeader {
+struct Header {
     pub version: String,
 }
 
@@ -89,7 +89,7 @@ impl MathResult {
 }
 
 pub fn decode_request(data: &[u8]) -> Result<Command, Error> {
-    let header: RequestHeader = serde_json::from_slice(data)?;
+    let header: Header = serde_json::from_slice(data)?;
     if header.version != PROTOCOL_VERSION {
         return Err(Error::UnsupportedVersion);
     }
@@ -107,7 +107,7 @@ pub fn encode_request(command: Command) -> Result<Vec<u8>, Error> {
 }
 
 pub fn decode_response(data: &[u8]) -> Result<MathResult, Error> {
-    let header: RequestHeader = serde_json::from_slice(data)?;
+    let header: Header = serde_json::from_slice(data)?;
     if header.version != PROTOCOL_VERSION {
         return Err(Error::UnsupportedVersion);
     }
