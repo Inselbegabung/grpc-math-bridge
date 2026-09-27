@@ -52,4 +52,6 @@ jobs:
         run: cargo machete
 
       - name: Lint protobuf
-        run: protolint lint proto/
+        uses: yoheimuta/action-protolint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
