@@ -12,3 +12,6 @@ async-trait = "0.1.92"
 
 server.workspace = true
 protocol.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

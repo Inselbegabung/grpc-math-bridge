@@ -73,14 +73,9 @@ impl Drop for UnixSocket {
 }
 
 async fn initialize_socket(socket_path: &str) -> UnixListener {
-    if tokio::fs::try_exists(socket_path)
+    tokio::fs::try_exists(socket_path)
         .await
-        .expect("working file system")
-    {
-        tokio::fs::remove_file(socket_path)
-            .await
-            .expect("expect clean system");
-    }
+        .expect("The socket '{}' already exists, remove it or select an other socket.");
 
     UnixListener::bind(socket_path).expect("unix listener binding")
 }
@@ -122,4 +117,31 @@ async fn read_request(stream: OwnedReadHalf) -> Result<Vec<u8>, String> {
     }
 
     Ok(data)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    mod initialize_socket {
+        use super::initialize_socket;
+
+        #[tokio::test]
+        async fn initialize_socket_creates_unix_socket() {
+            let temp_dir = tempfile::tempdir().expect("create temp directory");
+
+            let socket_path = temp_dir.path().join("math.sock");
+
+            assert!(!socket_path.exists());
+
+            let _listener = initialize_socket(
+                socket_path
+                    .to_str()
+                    .expect("socket path should be valid UTF-8"),
+            )
+            .await;
+
+            assert!(socket_path.exists());
+        }
+    }
 }
