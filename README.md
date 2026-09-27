@@ -50,7 +50,19 @@ To run the daemon:
 cargo run --bin daemon
 ```
 
-Currently, the daemon only sends a hardcoded request to the server. This is intended for testing the gRPC communication between the daemon and the server.
+A connection to the daemon can be established using a Unix socket. Currently, the daemon sends a request to the gRPC server on startup, prints the result, and then opens the Unix socket for testing purposes.
+
+The Unix socket can be tested using `socat`, for example:
+
+```bash
+socat - UNIX-CONNECT:/tmp/math.sock
+```
+
+After establishing the connection, the daemon should produce a log message similar to:
+
+```text
+2026-09-27T07:24:06.987416Z DEBUG daemon::bridge: Connection from: (unnamed)
+```
 
 ## Quality Gates
 

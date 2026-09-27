@@ -1,7 +1,16 @@
+mod bridge;
 mod grpc_client;
 
 use grpc_client::GrpcClient;
-use tracing::info;
+use tracing::{debug, info};
+
+async fn shutdown_signal() {
+    tokio::signal::ctrl_c()
+        .await
+        .expect("installing Ctrl+C handler");
+
+    debug!("Shutdown signal received.");
+}
 
 #[tokio::main]
 async fn main() {
@@ -21,6 +30,12 @@ async fn main() {
         .expect("valid request");
 
     println!("Result {result}");
+
+    let bridge = bridge::UnixSocket::new("/tmp/math.sock")
+        .await
+        .expect("working unix socket");
+
+    bridge.run(shutdown_signal()).await;
 
     info!("Bride daemon shutdown.")
 }
