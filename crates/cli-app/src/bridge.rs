@@ -20,19 +20,18 @@ impl UnixSocket {
 #[async_trait::async_trait]
 impl Bridge for UnixSocket {
     async fn send(&self, data: Vec<u8>) -> Result<Vec<u8>, String> {
-        let (reader, writer) = open_socket(&self.socket_path).await;
+        let (reader, writer) = open_socket(&self.socket_path).await?;
         write_message(writer, &data).await?;
         read_message(reader).await
     }
 }
 
-async fn open_socket(socket_path: &str) -> (OwnedReadHalf, OwnedWriteHalf) {
+async fn open_socket(socket_path: &str) -> Result<(OwnedReadHalf, OwnedWriteHalf), String> {
     let stream = UnixStream::connect(socket_path)
         .await
-        .map_err(|e| e.to_string())
-        .expect("open unix socket");
+        .map_err(|e| e.to_string())?;
 
-    stream.into_split()
+    Ok(stream.into_split())
 }
 
 async fn write_message(mut writer: OwnedWriteHalf, data: &[u8]) -> Result<(), String> {
@@ -68,4 +67,25 @@ async fn read_message(reader: OwnedReadHalf) -> Result<Vec<u8>, String> {
     }
 
     Ok(response)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn write_and_read_message() {
+        let (client, server) = UnixStream::pair().expect("create unix stream pair");
+
+        let (_, client_writer) = client.into_split();
+        let (server_reader, _) = server.into_split();
+
+        write_message(client_writer, b"hello")
+            .await
+            .expect("write message");
+
+        let message = read_message(server_reader).await.expect("read message");
+
+        assert_eq!(message, b"hello");
+    }
 }

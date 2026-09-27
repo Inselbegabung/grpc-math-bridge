@@ -37,12 +37,12 @@ struct FullRequest {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ResultData {
-    result: f64,
+    pub result: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ErrorData {
-    error: String,
+    pub error: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]

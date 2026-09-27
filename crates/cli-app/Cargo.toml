@@ -7,6 +7,10 @@ edition = "2024"
 tokio = { workspace = true, features = ["io-util", "net", "rt-multi-thread"] }
 async-trait.workspace = true
 clap.workspace = true
+regex = "1.13.1"
 
 protocol.workspace = true
-regex = "1.13.1"
+
+
+[dev-dependencies]
+mockall = "0.15"
