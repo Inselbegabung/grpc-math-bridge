@@ -204,6 +204,8 @@ dependencies = [
  "server",
  "tokio",
  "tonic",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

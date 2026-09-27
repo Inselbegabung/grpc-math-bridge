@@ -7,3 +7,5 @@ edition = "2024"
 server.workspace = true
 tonic.workspace = true
 tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
