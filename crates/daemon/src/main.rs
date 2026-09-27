@@ -41,7 +41,7 @@ async fn main() {
 
     let config = unwrap_or_exit(Config::load(&args.config).await, "Failed to load config");
 
-    info!("Bride daemon started.");
+    info!("Bridge daemon started.");
 
     let client = unwrap_or_exit(
         GrpcClient::connect(config.grpc_address).await,
@@ -56,5 +56,5 @@ async fn main() {
 
     bridge.run(handler, shutdown_signal()).await;
 
-    info!("Bride daemon shutdown.")
+    info!("Bridge daemon shutdown.")
 }

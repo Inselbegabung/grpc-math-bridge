@@ -82,7 +82,7 @@ async fn initialize_socket(socket_path: &str) -> Result<UnixListener, String> {
         ));
     }
 
-    Ok(UnixListener::bind(socket_path).expect("unix listener binding"))
+    UnixListener::bind(socket_path).map_err(|e| format!("Socket binding failed, error: {e}."))
 }
 
 pub async fn handle_connection(
